@@ -1,5 +1,6 @@
 package com.taskmanagement.taskmanagement.api.exception;
 
+import com.taskmanagement.taskmanagement.domain.exception.TaskInvalid;
 import com.taskmanagement.taskmanagement.domain.exception.UserAlreadyExist;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,22 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         StandardError standardError = new StandardError();
         standardError.setError(userAlreadyExist.getMessage());
         standardError.setMessage(userAlreadyExist.getMessage());
+        standardError.setStatus(HttpStatus.BAD_REQUEST.value());
+        standardError.setPath(httpServletRequest.getRequestURI());
+        standardError.setTimestamp(Instant.now());
+
+        return ResponseEntity.status(standardError.getStatus()).body(standardError);
+
+    }
+
+
+    @ExceptionHandler(TaskInvalid.class)
+    public ResponseEntity<StandardError> taskInvalid(TaskInvalid taskInvalid,
+                                                     HttpServletRequest httpServletRequest) {
+
+        StandardError standardError = new StandardError();
+        standardError.setError(taskInvalid.getMessage());
+        standardError.setMessage(taskInvalid.getMessage());
         standardError.setStatus(HttpStatus.BAD_REQUEST.value());
         standardError.setPath(httpServletRequest.getRequestURI());
         standardError.setTimestamp(Instant.now());

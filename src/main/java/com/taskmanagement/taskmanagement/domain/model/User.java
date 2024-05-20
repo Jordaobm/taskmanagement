@@ -1,6 +1,7 @@
 package com.taskmanagement.taskmanagement.domain.model;
 
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.taskmanagement.taskmanagement.domain.enums.PermissionEnum;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,6 +23,15 @@ public class User {
     private Long id;
     private String name;
     private String email;
+    @JsonIgnore
     private String password;
+    private Integer role;
 
+    public PermissionEnum getRole() {
+        return PermissionEnum.valueOf(role);
+    }
+
+    public void setRole(PermissionEnum role) {
+        this.role = role.getId();
+    }
 }
