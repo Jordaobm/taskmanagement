@@ -10,5 +10,4 @@ public class TaskInputDTO {
     private String title;
     private String description;
     private Integer status;
-    private Long authorId;
 }

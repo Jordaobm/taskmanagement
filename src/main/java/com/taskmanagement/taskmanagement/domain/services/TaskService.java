@@ -2,7 +2,7 @@ package com.taskmanagement.taskmanagement.domain.services;
 
 import com.taskmanagement.taskmanagement.api.dtos.input.TaskInputDTO;
 import com.taskmanagement.taskmanagement.domain.enums.StatusEnum;
-import com.taskmanagement.taskmanagement.domain.exception.TaskInvalid;
+import com.taskmanagement.taskmanagement.domain.exception.TaskInvalidException;
 import com.taskmanagement.taskmanagement.domain.model.Task;
 import com.taskmanagement.taskmanagement.domain.model.User;
 import com.taskmanagement.taskmanagement.domain.repositories.TaskRepository;
@@ -32,24 +32,22 @@ public class TaskService {
         return taskRepository.findById(taskId).get();
     }
 
-    public void validateTask(TaskInputDTO task, Boolean isCreated) {
+    public void validateTask(User author, TaskInputDTO task, Boolean isCreated) {
         if (task.getTitle().length() < 5) {
-            throw new TaskInvalid("O título deve ter pelo menos 5 caracteres.");
+            throw new TaskInvalidException("O título deve ter pelo menos 5 caracteres.");
         }
 
         if (isCreated) {
-            List<Task> tasks = taskRepository.findAllByAuthorIdAndStatusOrderByCreatedAtAsc(task.getAuthorId(), StatusEnum.PENDING.getId());
+            List<Task> tasks = taskRepository.findAllByAuthorIdAndStatusOrderByCreatedAtAsc(author.getId(), StatusEnum.PENDING.getId());
 
             if (tasks.size() >= 10) {
-                throw new TaskInvalid("Um usuário não pode criar mais de 10 tarefas pendentes ao mesmo tempo.");
+                throw new TaskInvalidException("Um usuário não pode criar mais de 10 tarefas pendentes ao mesmo tempo.");
             }
         }
     }
 
-    public Task createTask(TaskInputDTO task) {
-        validateTask(task, true);
-
-        User author = userService.getUserById(task.getAuthorId());
+    public Task createTask(User author, TaskInputDTO task) {
+        validateTask(author, task, true);
 
         Task newTask = new Task();
 
@@ -64,8 +62,8 @@ public class TaskService {
     }
 
 
-    public Task updateTask(TaskInputDTO task) {
-        validateTask(task, false);
+    public Task updateTask(User author, TaskInputDTO task) {
+        validateTask(author, task, false);
 
         Task updatedTask = findById(task.getId());
 
