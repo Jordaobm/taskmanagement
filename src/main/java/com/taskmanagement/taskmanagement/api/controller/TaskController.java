@@ -1,6 +1,9 @@
 package com.taskmanagement.taskmanagement.api.controller;
 
+import com.mysql.cj.util.StringUtils;
 import com.taskmanagement.taskmanagement.api.dtos.input.TaskInputDTO;
+import com.taskmanagement.taskmanagement.domain.exception.TaskException;
+import com.taskmanagement.taskmanagement.domain.exception.UserException;
 import com.taskmanagement.taskmanagement.domain.model.Task;
 import com.taskmanagement.taskmanagement.domain.model.User;
 import com.taskmanagement.taskmanagement.domain.services.AuthenticationService;
@@ -26,52 +29,57 @@ public class TaskController {
 
     @PostMapping
     public ResponseEntity<Task> createTask(@RequestBody TaskInputDTO task, HttpServletRequest request) {
-        User author = authenticationService.authentication(request);
-
-        Task newTask = taskService.createTask(author, task);
+        if (StringUtils.isNullOrEmpty(task.getTitle()) || StringUtils.isNullOrEmpty(task.getDescription())) {
+            throw new TaskException("Preencha os campos title e description para cadastrar uma nova tarefa!");
+        }
+        User loggedUser = authenticationService.authentication(request);
+        Task newTask = taskService.createTask(loggedUser, task);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(newTask.getId()).toUri();
         return ResponseEntity.created(uri).body(newTask);
     }
 
-    @GetMapping("/findAll")
+    @GetMapping("/all")
     public ResponseEntity<List<Task>> findAll(HttpServletRequest request) {
-        User author = authenticationService.authentication(request);
-
-        List<Task> tasks = taskService.findAll();
-        return ResponseEntity.ok().body(tasks);
-    }
-
-    @GetMapping("/user/{id}")
-    public ResponseEntity<List<Task>> findAllTasksByUser(@PathVariable Long id, HttpServletRequest request) {
-        User author = authenticationService.authentication(request);
-
-        List<Task> tasks = taskService.findAllTasksByUser(id);
+        User loggedUser = authenticationService.authentication(request);
+        List<Task> tasks = taskService.findAll(loggedUser);
         return ResponseEntity.ok().body(tasks);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Task> findById(@PathVariable Long id, HttpServletRequest request) {
-        User author = authenticationService.authentication(request);
+        if (id == null) {
+            throw new TaskException("Informe o ID da tarefa!");
+        }
 
-        Task task = taskService.findById(id);
+        User loggedUser = authenticationService.authentication(request);
+        Task task = taskService.findById(loggedUser, id);
         return ResponseEntity.ok().body(task);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody TaskInputDTO task, HttpServletRequest request) {
-        User author = authenticationService.authentication(request);
+        if (id == null) {
+            throw new TaskException("Informe o ID da tarefa!");
+        }
+        if (StringUtils.isNullOrEmpty(task.getTitle()) && StringUtils.isNullOrEmpty(task.getDescription()) && task.getStatus() == null) {
+            throw new TaskException("Preencha os campos title e description para editar uma tarefa!");
+        }
 
+        User loggedUser = authenticationService.authentication(request);
         task.setId(id);
-        Task updatedTask = taskService.updateTask(author, task);
+        Task updatedTask = taskService.updateTask(loggedUser, task);
         return ResponseEntity.ok().body(updatedTask);
     }
 
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id, HttpServletRequest request) {
-        User author = authenticationService.authentication(request);
+        if (id == null) {
+            throw new TaskException("Informe o ID da tarefa!");
+        }
 
-        taskService.deleteTask(id);
+        User loggedUser = authenticationService.authentication(request);
+        taskService.deleteTask(loggedUser, id);
         return ResponseEntity.noContent().build();
     }
 

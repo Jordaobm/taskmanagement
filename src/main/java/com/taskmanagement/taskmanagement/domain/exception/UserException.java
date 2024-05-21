@@ -1,12 +1,12 @@
 package com.taskmanagement.taskmanagement.domain.exception;
 
-public class UserAlreadyExistException extends RuntimeException {
+public class UserException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
     public String message;
 
-    public UserAlreadyExistException(String message) {
+    public UserException(String message) {
         super(message);
         this.message = message;
     }

@@ -8,8 +8,7 @@ import java.util.Arrays;
 public enum PermissionEnum {
 
     ADMINISTRADOR(1, "Administrator"),
-    USER(2, "User"),
-    VISITOR(3, "Visitor");
+    USER(2, "User");
 
     private final Integer id;
     private final String description;

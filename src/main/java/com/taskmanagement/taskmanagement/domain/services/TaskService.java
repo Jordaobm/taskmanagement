@@ -1,8 +1,10 @@
 package com.taskmanagement.taskmanagement.domain.services;
 
+import com.mysql.cj.util.StringUtils;
 import com.taskmanagement.taskmanagement.api.dtos.input.TaskInputDTO;
+import com.taskmanagement.taskmanagement.domain.enums.PermissionEnum;
 import com.taskmanagement.taskmanagement.domain.enums.StatusEnum;
-import com.taskmanagement.taskmanagement.domain.exception.TaskInvalidException;
+import com.taskmanagement.taskmanagement.domain.exception.TaskException;
 import com.taskmanagement.taskmanagement.domain.model.Task;
 import com.taskmanagement.taskmanagement.domain.model.User;
 import com.taskmanagement.taskmanagement.domain.repositories.TaskRepository;
@@ -10,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TaskService {
@@ -20,41 +23,58 @@ public class TaskService {
     @Autowired
     private UserService userService;
 
-    public List<Task> findAll() {
-        return taskRepository.findAll();
+    public List<Task> findAll(User loggedUser) {
+        if (loggedUser.getRole() == PermissionEnum.ADMINISTRADOR) {
+            return taskRepository.findAll();
+        }
+        return taskRepository.findAllByAuthorIdOrderByCreatedAtAsc(loggedUser.getId());
     }
 
-    public List<Task> findAllTasksByUser(Long userId) {
-        return taskRepository.findAllByAuthorIdOrderByCreatedAtAsc(userId);
-    }
+    public Task findById(User loggedUser, Long taskId) {
+        try {
+            Optional<Task> task = taskRepository.findById(taskId);
 
-    public Task findById(Long taskId) {
-        return taskRepository.findById(taskId).get();
+            if (task.isEmpty()) {
+                throw new TaskException("Tarefa não encontrada!");
+            }
+
+            if (loggedUser.getRole() != PermissionEnum.ADMINISTRADOR && loggedUser.getId() != task.get().getAuthor().getId()) {
+                throw new TaskException("Usuários com a role USER só podem visualizar/editar/deletar tarefas que são de sua autoria!");
+            }
+
+            return task.get();
+
+        } catch (RuntimeException runtimeException) {
+            throw new TaskException(runtimeException.getMessage());
+
+        }
     }
 
     public void validateTask(User author, TaskInputDTO task, Boolean isCreated) {
-        if (task.getTitle().length() < 5) {
-            throw new TaskInvalidException("O título deve ter pelo menos 5 caracteres.");
+        if (!StringUtils.isNullOrEmpty(task.getTitle())) {
+            if (task.getTitle().length() < 5) {
+                throw new TaskException("O título deve ter pelo menos 5 caracteres.");
+            }
         }
 
         if (isCreated) {
             List<Task> tasks = taskRepository.findAllByAuthorIdAndStatusOrderByCreatedAtAsc(author.getId(), StatusEnum.PENDING.getId());
 
             if (tasks.size() >= 10) {
-                throw new TaskInvalidException("Um usuário não pode criar mais de 10 tarefas pendentes ao mesmo tempo.");
+                throw new TaskException("Um usuário não pode criar mais de 10 tarefas pendentes ao mesmo tempo.");
             }
         }
     }
 
-    public Task createTask(User author, TaskInputDTO task) {
-        validateTask(author, task, true);
+    public Task createTask(User loggedUser, TaskInputDTO task) {
+        validateTask(loggedUser, task, true);
 
         Task newTask = new Task();
 
         newTask.setTitle(task.getTitle());
         newTask.setDescription(task.getDescription());
         newTask.setStatus(StatusEnum.valueOf(StatusEnum.PENDING.getId()));
-        newTask.setAuthor(author);
+        newTask.setAuthor(loggedUser);
 
         taskRepository.save(newTask);
 
@@ -62,21 +82,22 @@ public class TaskService {
     }
 
 
-    public Task updateTask(User author, TaskInputDTO task) {
-        validateTask(author, task, false);
+    public Task updateTask(User loggedUser, TaskInputDTO task) {
+        validateTask(loggedUser, task, false);
 
-        Task updatedTask = findById(task.getId());
+        Task updatedTask = findById(loggedUser, task.getId());
 
-        updatedTask.setTitle(task.getTitle());
-        updatedTask.setDescription(task.getDescription());
-        updatedTask.setStatus(StatusEnum.valueOf(task.getStatus()));
+        updatedTask.setTitle(StringUtils.isNullOrEmpty(task.getTitle()) ? updatedTask.getTitle() : task.getTitle());
+        updatedTask.setDescription(StringUtils.isNullOrEmpty(task.getDescription()) ? updatedTask.getDescription() : task.getDescription());
+        updatedTask.setStatus(task.getStatus() == null ? updatedTask.getStatus() : StatusEnum.valueOf(task.getStatus()));
 
         taskRepository.save(updatedTask);
 
         return updatedTask;
     }
 
-    public void deleteTask(Long id) {
-        taskRepository.deleteById(id);
+    public void deleteTask(User loggedUser, Long id) {
+        Task task = findById(loggedUser, id);
+        taskRepository.deleteById(task.getId());
     }
 }

@@ -1,8 +1,8 @@
 package com.taskmanagement.taskmanagement.api.exception;
 
 import com.taskmanagement.taskmanagement.domain.exception.AuthenticationException;
-import com.taskmanagement.taskmanagement.domain.exception.TaskInvalidException;
-import com.taskmanagement.taskmanagement.domain.exception.UserAlreadyExistException;
+import com.taskmanagement.taskmanagement.domain.exception.TaskException;
+import com.taskmanagement.taskmanagement.domain.exception.UserException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,13 +16,13 @@ import java.time.Instant;
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
 
-    @ExceptionHandler(UserAlreadyExistException.class)
-    public ResponseEntity<StandardError> userAlreadyExist(UserAlreadyExistException userAlreadyExistException,
+    @ExceptionHandler(UserException.class)
+    public ResponseEntity<StandardError> userAlreadyExist(UserException userException,
                                                           HttpServletRequest httpServletRequest) {
 
         StandardError standardError = new StandardError();
-        standardError.setError(userAlreadyExistException.getMessage());
-        standardError.setMessage(userAlreadyExistException.getMessage());
+        standardError.setError(userException.getMessage());
+        standardError.setMessage(userException.getMessage());
         standardError.setStatus(HttpStatus.BAD_REQUEST.value());
         standardError.setPath(httpServletRequest.getRequestURI());
         standardError.setTimestamp(Instant.now());
@@ -32,13 +32,13 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
 
-    @ExceptionHandler(TaskInvalidException.class)
-    public ResponseEntity<StandardError> taskInvalid(TaskInvalidException taskInvalidException,
+    @ExceptionHandler(TaskException.class)
+    public ResponseEntity<StandardError> taskInvalid(TaskException taskException,
                                                      HttpServletRequest httpServletRequest) {
 
         StandardError standardError = new StandardError();
-        standardError.setError(taskInvalidException.getMessage());
-        standardError.setMessage(taskInvalidException.getMessage());
+        standardError.setError(taskException.getMessage());
+        standardError.setMessage(taskException.getMessage());
         standardError.setStatus(HttpStatus.BAD_REQUEST.value());
         standardError.setPath(httpServletRequest.getRequestURI());
         standardError.setTimestamp(Instant.now());

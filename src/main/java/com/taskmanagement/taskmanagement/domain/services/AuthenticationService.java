@@ -19,13 +19,16 @@ public class AuthenticationService {
     public User authentication(HttpServletRequest request) {
         try {
             String authHeader = request.getHeader("Authorization");
+            if (authHeader == null) {
+                throw new AuthenticationException("Adicione seu Authorization Bearer Token ao cabeçalho da requisição!");
+            }
             String token = authHeader.substring(7);
             String email = applicationConfiguration.isTokenValid(token);
-            User user = userService.getUserByEmail(email);
-            if (user == null) {
+            User loggedUser = userService.getUserByEmail(email);
+            if (loggedUser == null) {
                 throw new AuthenticationException("Usuário não encontrado!");
             }
-            return user;
+            return loggedUser;
         } catch (RuntimeException runtimeException) {
             throw new AuthenticationException(runtimeException.getMessage());
         }

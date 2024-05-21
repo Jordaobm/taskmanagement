@@ -5,7 +5,7 @@ import com.taskmanagement.taskmanagement.api.dtos.output.UserLoginOutputDTO;
 import com.taskmanagement.taskmanagement.config.ApplicationConfiguration;
 import com.taskmanagement.taskmanagement.domain.enums.PermissionEnum;
 import com.taskmanagement.taskmanagement.domain.exception.AuthenticationException;
-import com.taskmanagement.taskmanagement.domain.exception.UserAlreadyExistException;
+import com.taskmanagement.taskmanagement.domain.exception.UserException;
 import com.taskmanagement.taskmanagement.domain.model.User;
 import com.taskmanagement.taskmanagement.domain.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +42,7 @@ public class UserService {
 
     public User createUser(UserInputDTO user) {
         if (userRepository.findOneByEmail(user.getEmail()) != null) {
-            throw new UserAlreadyExistException("Usuário já existente com este e-mail!");
+            throw new UserException("Usuário já existente com este e-mail!");
         }
 
         User newUser = new User();
@@ -50,7 +50,26 @@ public class UserService {
         newUser.setName(user.getName());
         newUser.setEmail(user.getEmail());
         newUser.setPassword(encodePassword(user.getPassword()));
-        newUser.setRole(PermissionEnum.valueOf(user.getRole()));
+        newUser.setRole(PermissionEnum.USER);
+        userRepository.save(newUser);
+        return newUser;
+    }
+
+    public User createUserAdmin(User loggedUser, UserInputDTO user) {
+        if (loggedUser.getRole() != PermissionEnum.ADMINISTRADOR) {
+            throw new AuthenticationException("Somente usuários administradores podem adicionar usuários administradores");
+        }
+
+        if (userRepository.findOneByEmail(user.getEmail()) != null) {
+            throw new UserException("Usuário já existente com este e-mail!");
+        }
+
+        User newUser = new User();
+
+        newUser.setName(user.getName());
+        newUser.setEmail(user.getEmail());
+        newUser.setPassword(encodePassword(user.getPassword()));
+        newUser.setRole(PermissionEnum.ADMINISTRADOR);
         userRepository.save(newUser);
         return newUser;
     }
