@@ -39,7 +39,7 @@ public class ApplicationConfiguration {
                 .info(new Info()
                         .title("Task Management API")
                         .version("1.0")
-                        .description("API para Gerenciamento de Tarefas")
+                        .description("API para Gerenciamento de Tarefas. Para testar a aplicação experimente as credencias de administrador email: usuarioadministrador@example.com e senha:administrador")
                         .contact(new Contact().name("Jordão Beghetto Massariol").email("jbmassariol@gmail.com")));
     }
 

@@ -1,14 +1,16 @@
 package com.taskmanagement.taskmanagement.domain.model;
 
-import com.taskmanagement.taskmanagement.domain.enums.PermissionEnum;
 import com.taskmanagement.taskmanagement.domain.enums.StatusEnum;
+import com.taskmanagement.taskmanagement.domain.exception.TaskException;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -35,10 +37,16 @@ public class Task {
     private LocalDateTime updatedAt;
 
     public StatusEnum getStatus() {
-        return StatusEnum.valueOf(status);
+        try {
+            return StatusEnum.valueOf(status);
+        } catch (RuntimeException runtimeException) {
+            throw new TaskException("Status inválido!");
+        }
     }
 
     public void setStatus(StatusEnum status) {
+
+
         this.status = status.getId();
     }
 
