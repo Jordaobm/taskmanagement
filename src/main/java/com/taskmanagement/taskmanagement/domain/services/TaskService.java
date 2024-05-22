@@ -34,7 +34,7 @@ public class TaskService {
         try {
             Optional<Task> task = taskRepository.findById(taskId);
 
-            if (task.isEmpty()) {
+            if (task == null || task.isEmpty()) {
                 throw new TaskException("Tarefa não encontrada!");
             }
 
