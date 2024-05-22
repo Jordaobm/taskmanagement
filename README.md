@@ -72,14 +72,6 @@ de atualização e status (pendente, concluída e cancelada).
 4. **Acessar a aplicação**:
    A aplicação estará disponível em `http://localhost:8080`.
 
-## Endpoints da API
-
-- **Criar uma nova tarefa**: `POST /api/tarefas`
-- **Listar todas as tarefas**: `GET /api/tarefas`
-- **Editar uma tarefa**: `PUT /api/tarefas/{id}`
-- **Excluir uma tarefa**: `DELETE /api/tarefas/{id}`
-- **Alterar status de uma tarefa**: `PATCH /api/tarefas/{id}/status`
-
 ## Testes
 
 Os testes estão localizados no diretório src/test/java/com/exemplo/gerenciadortarefas. Para executar os testes, utilize
